@@ -1,0 +1,26 @@
+#!/bin/bash
+for f in $@
+do
+	if [[ "$f" == '-h' ]];then
+		echo -e '\e[1;33mprootrun [path to executable file] [path to the root]
+\e[1;39mYou can add the path to the root in ~/.config/prootrun.conf
+chroot="path to the root"'
+		exit
+	fi
+done
+if [[ "$2" == '' ]];then
+	if [ -f ~/.config/prootrun.conf ];then
+		source ~/.config/prootrun.conf
+	fi
+else
+	chroot="$2"
+fi
+if [[ "$chroot" == '' ]];then
+	echo "Path to root is not specified"
+	exit 255
+fi
+if [[ "$1" == *'steamapps/common'* ]];then
+	LIB=${1%steamapps\/common*}
+	PROOT_NO_SECCOMP=1 LD_LIBRARY_PATH=./ exec proot -r "$chroot" -b /home -b /proc/ -b /dev -b /sys -b "$LIB" -b ./ "$1"
+fi
+PROOT_NO_SECCOMP=1 exec proot -r "$chroot" -b /home -b /proc/ -b /dev -b /sys -b ./ "$1"
